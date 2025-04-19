@@ -1,0 +1,150 @@
+/* src/components/PokerTable.css */
+.poker-table-container {
+  width: 100%;
+  padding-bottom: 75%; /* Aspect ratio for the table */
+  position: relative;
+}
+
+.poker-table {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #16913e;
+  border-radius: 50%;
+  border: 15px solid #7b5427;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 0 50px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.table-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  width: 40%;
+}
+
+.community-cards {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.pot-display {
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  display: inline-block;
+  color: white;
+  font-weight: bold;
+}
+
+.pot-label {
+  margin-right: 0.5rem;
+}
+
+.pot-amount {
+  color: #ffd700; /* Gold color for the pot amount */
+}
+
+.waiting-text {
+  color: white;
+  font-size: 1.5rem;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.player-position {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1;
+}
+
+.player-info {
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 0.5rem;
+  border-radius: 5px;
+  color: white;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  width: 100%;
+}
+
+.player-name {
+  font-weight: bold;
+  margin-bottom: 0.2rem;
+}
+
+.player-chips {
+  color: #ffd700; /* Gold color for chips */
+  font-size: 0.9rem;
+}
+
+.player-bet {
+  background-color: rgba(255, 215, 0, 0.2);
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.8rem;
+  margin-top: 0.2rem;
+}
+
+.player-folded {
+  background-color: rgba(220, 20, 60, 0.2);
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.8rem;
+  margin-top: 0.2rem;
+  color: #dc143c; /* Crimson color for folded */
+}
+
+.player-cards {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.current-player {
+  z-index: 2; /* Higher z-index for current player */
+}
+
+.active-player .player-info {
+  background-color: rgba(233, 69, 96, 0.8); /* Highlight active player */
+  box-shadow: 0 0 15px rgba(233, 69, 96, 0.6);
+}
+
+.card-back {
+  width: 60px;
+  height: 90px;
+  background-color: #1a1a2e;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 5px,
+    rgba(255, 255, 255, 0.1) 5px,
+    rgba(255, 255, 255, 0.1) 10px
+  );
+  border-radius: 5px;
+  border: 2px solid white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+@media screen and (max-width: 768px) {
+  .player-position {
+    width: 120px;
+  }
+
+  .card-back {
+    width: 50px;
+    height: 75px;
+  }
+
+  .player-info {
+    font-size: 0.8rem;
+  }
+}

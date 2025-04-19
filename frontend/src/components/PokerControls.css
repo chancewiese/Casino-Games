@@ -1,0 +1,145 @@
+/* src/components/PokerControls.css */
+.poker-controls {
+  background-color: #1a1a2e;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 600px;
+}
+
+.controls-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.info-item {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  color: white;
+}
+
+.info-label {
+  margin-right: 0.5rem;
+  font-weight: bold;
+  color: #e94560;
+}
+
+.info-value {
+  font-weight: bold;
+}
+
+.bet-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.bet-amount-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: white;
+}
+
+.bet-slider {
+  width: 100%;
+  cursor: pointer;
+  height: 20px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #474761;
+  border-radius: 10px;
+  outline: none;
+}
+
+.bet-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #e94560;
+  cursor: pointer;
+}
+
+.bet-slider::-moz-range-thumb {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #e94560;
+  cursor: pointer;
+  border: none;
+}
+
+.bet-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  color: #e94560;
+}
+
+.bet-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.btn-bet {
+  padding: 0.75rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-check {
+  background-color: #3a86ff;
+  color: white;
+}
+
+.btn-check:hover:not(:disabled) {
+  background-color: #2a75ee;
+}
+
+.btn-call {
+  background-color: #8338ec;
+  color: white;
+}
+
+.btn-call:hover:not(:disabled) {
+  background-color: #7328dc;
+}
+
+.btn-raise {
+  background-color: #e94560;
+  color: white;
+}
+
+.btn-raise:hover:not(:disabled) {
+  background-color: #d93550;
+}
+
+.btn-fold {
+  background-color: #464655;
+  color: white;
+}
+
+.btn-fold:hover {
+  background-color: #363645;
+}
+
+.btn-bet:disabled {
+  background-color: #555555;
+  color: #aaaaaa;
+  cursor: not-allowed;
+}
+
+@media screen and (max-width: 600px) {
+  .bet-buttons {
+    grid-template-columns: 1fr;
+  }
+}

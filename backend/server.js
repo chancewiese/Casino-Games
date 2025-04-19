@@ -12,15 +12,15 @@ const socketIo = require("socket.io");
 const authRoutes = require("./src/routes/auth");
 const gameRoutes = require("./src/routes/games");
 
-// Load environment variables
-dotenv.config();
+// No need for dotenv since we're hardcoding values
+// dotenv.config();
 
 // Initialize Express app
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "http://localhost:8080",
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -29,21 +29,25 @@ const io = socketIo(server, {
 // Middleware
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: "http://localhost:8080", // This must match your frontend URL exactly
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Set up sessions
+// Set up sessions with hardcoded values
 app.use(
   session({
-    secret: process.env.SESSION_SECRET,
+    secret: "casino-app-secret-key-123",
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-      mongoUrl: process.env.MONGODB_URI,
+      mongoUrl:
+        "mongodb+srv://chancewiese0925:0SMJ2llJFvLdbwKV@casino-games.pzxsvqk.mongodb.net/casino-app",
       collectionName: "sessions",
     }),
     cookie: {
@@ -52,15 +56,20 @@ app.use(
   })
 );
 
-// Connect to MongoDB
+// Connect to MongoDB with hardcoded URI
 mongoose
-  .connect(process.env.MONGODB_URI)
+  .connect(
+    "mongodb+srv://chancewiese0925:0SMJ2llJFvLdbwKV@casino-games.pzxsvqk.mongodb.net/casino-app"
+  )
   .then(() => console.log("Connected to MongoDB Atlas"))
   .catch((err) => console.error("Could not connect to MongoDB Atlas", err));
 
 // Use routes
 app.use("/api/auth", authRoutes);
 app.use("/api/games", gameRoutes);
+app.get("/api/test", (req, res) => {
+  res.json({ message: "API is working!" });
+});
 
 // Socket.io connection for real-time game updates
 io.on("connection", (socket) => {
@@ -74,7 +83,8 @@ io.on("connection", (socket) => {
 
   // Handle poker game events
   socket.on("pokerAction", (data) => {
-    io.to(data.roomId).emit("pokerUpdate", data);
+    // Broadcast the updated game to all clients except the sender
+    socket.to(data.roomId).emit("pokerUpdate", data.game);
   });
 
   socket.on("disconnect", () => {
@@ -82,8 +92,8 @@ io.on("connection", (socket) => {
   });
 });
 
-// Start the server
-const PORT = process.env.PORT || 5000;
+// Start the server with hardcoded port 3000
+const PORT = 3000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

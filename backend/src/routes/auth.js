@@ -9,6 +9,9 @@ router.post("/register", async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
+    // Log the request body to help debug
+    console.log("Registration attempt:", { username, email });
+
     // Check if user already exists
     const existingUser = await User.findOne({ $or: [{ email }, { username }] });
     if (existingUser) {
@@ -27,10 +30,10 @@ router.post("/register", async (req, res) => {
     // Create session
     req.session.userId = user._id;
 
-    // Create and sign JWT
+    // Create and sign JWT with hardcoded secret
     const token = jwt.sign(
       { id: user._id, username: user.username },
-      process.env.JWT_SECRET,
+      "casino-app-jwt-secret-key",
       { expiresIn: "1d" }
     );
 
@@ -44,6 +47,7 @@ router.post("/register", async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("Registration error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
@@ -68,10 +72,10 @@ router.post("/login", async (req, res) => {
     // Create session
     req.session.userId = user._id;
 
-    // Create and sign JWT
+    // Create and sign JWT with hardcoded secret
     const token = jwt.sign(
       { id: user._id, username: user.username },
-      process.env.JWT_SECRET,
+      "casino-app-jwt-secret-key",
       { expiresIn: "1d" }
     );
 

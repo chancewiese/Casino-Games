@@ -56,57 +56,49 @@ const createDeck = () => {
   return deck;
 };
 
-// Get all active poker games
+// Get the current poker game (or create it if it doesn't exist)
 router.get("/poker", auth, async (req, res) => {
   try {
-    const games = await PokerGame.find({ gameState: "waiting" });
-    res.json(games);
+    // Try to find the existing game
+    let game = await PokerGame.findOne();
+
+    // If no game exists, create a new one
+    if (!game) {
+      game = new PokerGame({
+        name: "Poker Game",
+        maxPlayers: 6,
+        minBet: 10,
+        deck: createDeck(),
+        players: [],
+      });
+      await game.save();
+    }
+
+    res.json(game);
   } catch (error) {
+    console.error("Error fetching game:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
-// Create a new poker game
-router.post("/poker", auth, async (req, res) => {
+// Join the poker game
+router.post("/poker/join", auth, async (req, res) => {
   try {
-    const { name, maxPlayers, minBet } = req.body;
-
-    const newGame = new PokerGame({
-      name,
-      maxPlayers: maxPlayers || 6,
-      minBet: minBet || 10,
-      deck: createDeck(),
-      players: [
-        {
-          userId: req.user._id,
-          username: req.user.username,
-          chips: req.user.chips,
-          hand: [],
-          position: 0,
-        },
-      ],
-    });
-
-    await newGame.save();
-    res.status(201).json(newGame);
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
-});
-
-// Join a poker game
-router.post("/poker/:id/join", auth, async (req, res) => {
-  try {
-    const game = await PokerGame.findById(req.params.id);
+    // Find the game (there should only be one)
+    let game = await PokerGame.findOne();
 
     if (!game) {
-      return res.status(404).json({ message: "Game not found" });
+      // Create a new game if none exists
+      game = new PokerGame({
+        name: "Poker Game",
+        maxPlayers: 6,
+        minBet: 10,
+        deck: createDeck(),
+        players: [],
+      });
     }
 
-    if (game.gameState !== "waiting") {
-      return res.status(400).json({ message: "Game already started" });
-    }
-
+    // Check if game is full
     if (game.players.length >= game.maxPlayers) {
       return res.status(400).json({ message: "Game is full" });
     }
@@ -132,50 +124,19 @@ router.post("/poker/:id/join", auth, async (req, res) => {
     await game.save();
     res.json(game);
   } catch (error) {
+    console.error("Error joining game:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
-// Get a specific poker game
-router.get("/poker/:id", auth, async (req, res) => {
+// Start the poker game
+router.post("/poker/start", auth, async (req, res) => {
   try {
-    const game = await PokerGame.findById(req.params.id);
+    // Find the game
+    const game = await PokerGame.findOne();
 
     if (!game) {
       return res.status(404).json({ message: "Game not found" });
-    }
-
-    // Check if user is in the game
-    const player = game.players.find(
-      (player) => player.userId.toString() === req.user._id.toString()
-    );
-
-    if (!player && game.gameState !== "waiting") {
-      return res
-        .status(403)
-        .json({ message: "Not authorized to view this game" });
-    }
-
-    res.json(game);
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
-});
-
-// Start a poker game
-router.post("/poker/:id/start", auth, async (req, res) => {
-  try {
-    const game = await PokerGame.findById(req.params.id);
-
-    if (!game) {
-      return res.status(404).json({ message: "Game not found" });
-    }
-
-    // Check if user is the creator (first player)
-    if (game.players[0].userId.toString() !== req.user._id.toString()) {
-      return res
-        .status(403)
-        .json({ message: "Only the game creator can start the game" });
     }
 
     if (game.players.length < 2) {
@@ -205,15 +166,51 @@ router.post("/poker/:id/start", auth, async (req, res) => {
     await game.save();
     res.json(game);
   } catch (error) {
+    console.error("Error starting game:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// Reset the game
+router.post("/poker/reset", auth, async (req, res) => {
+  try {
+    // Find the game
+    let game = await PokerGame.findOne();
+
+    if (!game) {
+      return res.status(404).json({ message: "Game not found" });
+    }
+
+    // Keep the same players but reset their hands, bets, etc.
+    const updatedPlayers = game.players.map((player) => ({
+      ...player,
+      hand: [],
+      bet: 0,
+      folded: false,
+    }));
+
+    // Reset the game state
+    game.players = updatedPlayers;
+    game.deck = createDeck();
+    game.communityCards = [];
+    game.pot = 0;
+    game.currentTurn = 0;
+    game.gameState = "waiting";
+    game.lastUpdated = Date.now();
+
+    await game.save();
+    res.json(game);
+  } catch (error) {
+    console.error("Error resetting game:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
 // Place a bet
-router.post("/poker/:id/bet", auth, async (req, res) => {
+router.post("/poker/bet", auth, async (req, res) => {
   try {
     const { amount } = req.body;
-    const game = await PokerGame.findById(req.params.id);
+    const game = await PokerGame.findOne();
 
     if (!game) {
       return res.status(404).json({ message: "Game not found" });
@@ -257,14 +254,15 @@ router.post("/poker/:id/bet", auth, async (req, res) => {
     await game.save();
     res.json(game);
   } catch (error) {
+    console.error("Error placing bet:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
 // Fold
-router.post("/poker/:id/fold", auth, async (req, res) => {
+router.post("/poker/fold", auth, async (req, res) => {
   try {
-    const game = await PokerGame.findById(req.params.id);
+    const game = await PokerGame.findOne();
 
     if (!game) {
       return res.status(404).json({ message: "Game not found" });
@@ -298,6 +296,7 @@ router.post("/poker/:id/fold", auth, async (req, res) => {
     await game.save();
     res.json(game);
   } catch (error) {
+    console.error("Error folding:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
