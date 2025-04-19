@@ -16,9 +16,8 @@ import Register from "./pages/Register";
 import PokerRoom from "./pages/PokerRoom";
 import NotFound from "./pages/NotFound";
 
-// Set axios defaults
-axios.defaults.baseURL =
-  process.env.REACT_APP_API_URL || "http://localhost:3000/api";
+// Set axios defaults - Use relative path for API
+axios.defaults.baseURL = "/api";
 axios.defaults.withCredentials = true;
 
 function App() {

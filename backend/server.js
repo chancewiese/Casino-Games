@@ -21,8 +21,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:8080",
-    methods: ["GET", "POST"],
+    origin: true,
     credentials: true,
   },
 });
@@ -37,18 +36,19 @@ app.use(
   })
 );
 
-app.use(express.static(path.join(__dirname, "../frontend/build")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Set up sessions
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "fallback-session-secret",
+    secret: process.env.SESSION_SECRET || "casino-app-secret-key-123",
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-      mongoUrl: process.env.MONGODB_URI,
+      mongoUrl:
+        process.env.MONGODB_URI ||
+        "mongodb+srv://chancewiese0925:0SMJ2llJFvLdbwKV@casino-games.pzxsvqk.mongodb.net/casino-app",
       collectionName: "sessions",
     }),
     cookie: {
@@ -59,19 +59,21 @@ app.use(
 
 // Connect to MongoDB
 mongoose
-  .connect(process.env.MONGODB_URI)
+  .connect(
+    process.env.MONGODB_URI ||
+      "mongodb+srv://chancewiese0925:0SMJ2llJFvLdbwKV@casino-games.pzxsvqk.mongodb.net/casino-app"
+  )
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("Could not connect to MongoDB", err));
 
-// Use routes
+// Serve static files from the React frontend app
+app.use(express.static(path.join(__dirname, "../frontend/build")));
+
+// Use API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/games", gameRoutes);
 app.get("/api/test", (req, res) => {
   res.json({ message: "API is working!" });
-});
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/build/index.html"));
 });
 
 // Socket.io connection for real-time game updates
@@ -93,6 +95,11 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("User disconnected");
   });
+});
+
+// Anything that doesn't match the above, send back the index.html file
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/build/index.html"));
 });
 
 // Start the server

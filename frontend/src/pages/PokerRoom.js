@@ -16,7 +16,7 @@ const PokerRoom = ({ user }) => {
 
   // Initialize socket connection
   useEffect(() => {
-    const newSocket = io("http://localhost:3000");
+    const newSocket = io();
     setSocket(newSocket);
 
     // Cleanup on unmount
