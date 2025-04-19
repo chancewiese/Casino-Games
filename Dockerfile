@@ -3,18 +3,29 @@ FROM node:18
 # Create app directory
 WORKDIR /usr/src/app
 
-# Copy root package.json
+# Copy package.json files
 COPY package.json ./
+COPY backend/package.json ./backend/
+COPY frontend/package.json ./frontend/
 
-# Copy both apps
+# Install backend dependencies
+RUN cd backend && npm install
+
+# Install frontend dependencies
+RUN cd frontend && npm install
+
+# Copy source code
 COPY backend ./backend
 COPY frontend ./frontend
 
-# Install dependencies and build frontend
-RUN npm run postinstall
+# Build frontend
+RUN cd frontend && npm run build
 
 # Expose port
 EXPOSE 3000
 
+# Set host to 0.0.0.0 to allow external connections
+ENV HOST=0.0.0.0
+
 # Start the app
-CMD ["npm", "start"]
+CMD ["node", "backend/server.js"]
