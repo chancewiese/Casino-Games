@@ -7,6 +7,7 @@ const MongoStore = require("connect-mongo");
 const dotenv = require("dotenv");
 const http = require("http");
 const socketIo = require("socket.io");
+const path = require("path");
 
 // Import routes
 const authRoutes = require("./src/routes/auth");
@@ -29,13 +30,14 @@ const io = socketIo(server, {
 // Middleware
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:8080",
+    origin: true,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
+app.use(express.static(path.join(__dirname, "../frontend/build")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -66,6 +68,10 @@ app.use("/api/auth", authRoutes);
 app.use("/api/games", gameRoutes);
 app.get("/api/test", (req, res) => {
   res.json({ message: "API is working!" });
+});
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/build/index.html"));
 });
 
 // Socket.io connection for real-time game updates
