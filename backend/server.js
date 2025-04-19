@@ -2,15 +2,12 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const session = require("express-session");
-const MongoStore = require("connect-mongo");
 const dotenv = require("dotenv");
 const http = require("http");
 const socketIo = require("socket.io");
 const path = require("path");
 
 // Import routes
-const authRoutes = require("./src/routes/auth");
 const gameRoutes = require("./src/routes/games");
 
 // Load environment variables
@@ -27,33 +24,9 @@ const io = socketIo(server, {
 });
 
 // Middleware
-app.use(
-  cors({
-    origin: true,
-    credentials: true,
-  })
-);
-
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Set up sessions
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "casino-app-secret-key-123",
-    resave: false,
-    saveUninitialized: false,
-    store: MongoStore.create({
-      mongoUrl:
-        process.env.MONGODB_URI ||
-        "mongodb+srv://chancewiese0925:0SMJ2llJFvLdbwKV@casino-games.pzxsvqk.mongodb.net/casino-app",
-      collectionName: "sessions",
-    }),
-    cookie: {
-      maxAge: 1000 * 60 * 60 * 24, // 1 day
-    },
-  })
-);
 
 // Connect to MongoDB
 mongoose
@@ -68,8 +41,9 @@ mongoose
 app.use(express.static(path.join(__dirname, "../frontend/build")));
 
 // Use API routes
-app.use("/api/auth", authRoutes);
 app.use("/api/games", gameRoutes);
+
+// Test endpoint
 app.get("/api/test", (req, res) => {
   res.json({ message: "API is working!" });
 });

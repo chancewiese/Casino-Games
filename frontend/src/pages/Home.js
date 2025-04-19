@@ -3,29 +3,17 @@ import React from "react";
 import { Link } from "react-router-dom";
 import "./Home.css";
 
-const Home = ({ user }) => {
+const Home = () => {
   return (
     <div className="home">
       <div className="home-hero">
-        <h1>Welcome to Casino App</h1>
+        <h1>Welcome to Poker App</h1>
         <p>The ultimate poker experience!</p>
-        {!user ? (
-          <div className="home-buttons">
-            <Link to="/login" className="btn btn-primary">
-              Login
-            </Link>
-            <Link to="/register" className="btn btn-secondary">
-              Register
-            </Link>
-          </div>
-        ) : (
-          <div className="home-user-actions">
-            <h2>Ready to play?</h2>
-            <Link to="/poker" className="btn btn-primary btn-lg">
-              Play Poker
-            </Link>
-          </div>
-        )}
+        <div className="home-buttons">
+          <Link to="/poker" className="btn btn-primary">
+            Play Poker
+          </Link>
+        </div>
       </div>
 
       <div className="home-features">

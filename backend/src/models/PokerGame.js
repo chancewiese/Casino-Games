@@ -2,17 +2,13 @@
 const mongoose = require("mongoose");
 
 const PlayerSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
-  username: {
+  playerName: {
     type: String,
     required: true,
   },
   chips: {
     type: Number,
+    default: 1000,
     required: true,
   },
   hand: [String],

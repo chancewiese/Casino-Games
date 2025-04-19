@@ -3,10 +3,10 @@ import React from "react";
 import "./PokerTable.css";
 import PlayingCard from "./PlayingCard";
 
-const PokerTable = ({ game, currentPlayerId }) => {
+const PokerTable = ({ game, currentPlayerName }) => {
   // Find the current player
   const currentPlayer = game.players.find(
-    (player) => player.userId === currentPlayerId
+    (player) => player.playerName === currentPlayerName
   );
 
   // Calculate positions around the table
@@ -50,7 +50,7 @@ const PokerTable = ({ game, currentPlayerId }) => {
         {/* Players around the table */}
         {game.players.map((player, index) => {
           const position = getPlayerPosition(index, game.maxPlayers);
-          const isCurrentPlayer = player.userId === currentPlayerId;
+          const isCurrentPlayer = player.playerName === currentPlayerName;
           const isPlayerTurn =
             game.currentTurn === index && game.gameState !== "waiting";
 
@@ -66,7 +66,7 @@ const PokerTable = ({ game, currentPlayerId }) => {
               }}
             >
               <div className="player-info">
-                <div className="player-name">{player.username}</div>
+                <div className="player-name">{player.playerName}</div>
                 <div className="player-chips">{player.chips} chips</div>
                 {player.bet > 0 && (
                   <div className="player-bet">Bet: {player.bet}</div>

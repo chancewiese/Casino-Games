@@ -2,24 +2,6 @@
 const express = require("express");
 const router = express.Router();
 const PokerGame = require("../models/PokerGame");
-const User = require("../models/User");
-
-// Authentication middleware
-const auth = async (req, res, next) => {
-  if (!req.session.userId) {
-    return res.status(401).json({ message: "Not authenticated" });
-  }
-  try {
-    const user = await User.findById(req.session.userId);
-    if (!user) {
-      return res.status(401).json({ message: "User not found" });
-    }
-    req.user = user;
-    next();
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
-};
 
 // Helper function to create a deck of cards
 const createDeck = () => {
@@ -57,7 +39,7 @@ const createDeck = () => {
 };
 
 // Get the current poker game (or create it if it doesn't exist)
-router.get("/poker", auth, async (req, res) => {
+router.get("/poker", async (req, res) => {
   try {
     // Try to find the existing game
     let game = await PokerGame.findOne();
@@ -82,8 +64,14 @@ router.get("/poker", auth, async (req, res) => {
 });
 
 // Join the poker game
-router.post("/poker/join", auth, async (req, res) => {
+router.post("/poker/join", async (req, res) => {
   try {
+    const { playerName } = req.body;
+
+    if (!playerName || playerName.trim() === "") {
+      return res.status(400).json({ message: "Player name is required" });
+    }
+
     // Find the game (there should only be one)
     let game = await PokerGame.findOne();
 
@@ -103,20 +91,21 @@ router.post("/poker/join", auth, async (req, res) => {
       return res.status(400).json({ message: "Game is full" });
     }
 
-    // Check if player is already in the game
+    // Check if player name is already in the game
     const existingPlayer = game.players.find(
-      (player) => player.userId.toString() === req.user._id.toString()
+      (player) => player.playerName === playerName
     );
 
     if (existingPlayer) {
-      return res.status(400).json({ message: "Already joined this game" });
+      return res
+        .status(400)
+        .json({ message: "Name already taken, please choose another" });
     }
 
     // Add player to the game
     game.players.push({
-      userId: req.user._id,
-      username: req.user.username,
-      chips: req.user.chips,
+      playerName: playerName,
+      chips: 1000,
       hand: [],
       position: game.players.length,
     });
@@ -130,8 +119,10 @@ router.post("/poker/join", auth, async (req, res) => {
 });
 
 // Start the poker game
-router.post("/poker/start", auth, async (req, res) => {
+router.post("/poker/start", async (req, res) => {
   try {
+    const { playerName } = req.body;
+
     // Find the game
     const game = await PokerGame.findOne();
 
@@ -172,7 +163,7 @@ router.post("/poker/start", auth, async (req, res) => {
 });
 
 // Reset the game
-router.post("/poker/reset", auth, async (req, res) => {
+router.post("/poker/reset", async (req, res) => {
   try {
     // Find the game
     let game = await PokerGame.findOne();
@@ -207,9 +198,9 @@ router.post("/poker/reset", auth, async (req, res) => {
 });
 
 // Place a bet
-router.post("/poker/bet", auth, async (req, res) => {
+router.post("/poker/bet", async (req, res) => {
   try {
-    const { amount } = req.body;
+    const { amount, playerName } = req.body;
     const game = await PokerGame.findOne();
 
     if (!game) {
@@ -218,7 +209,7 @@ router.post("/poker/bet", auth, async (req, res) => {
 
     // Find the player
     const playerIndex = game.players.findIndex(
-      (player) => player.userId.toString() === req.user._id.toString()
+      (player) => player.playerName === playerName
     );
 
     if (playerIndex === -1) {
@@ -260,8 +251,9 @@ router.post("/poker/bet", auth, async (req, res) => {
 });
 
 // Fold
-router.post("/poker/fold", auth, async (req, res) => {
+router.post("/poker/fold", async (req, res) => {
   try {
+    const { playerName } = req.body;
     const game = await PokerGame.findOne();
 
     if (!game) {
@@ -270,7 +262,7 @@ router.post("/poker/fold", auth, async (req, res) => {
 
     // Find the player
     const playerIndex = game.players.findIndex(
-      (player) => player.userId.toString() === req.user._id.toString()
+      (player) => player.playerName === playerName
     );
 
     if (playerIndex === -1) {

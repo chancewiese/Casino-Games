@@ -3,12 +3,15 @@ import React from "react";
 import { Link } from "react-router-dom";
 import "./Navbar.css";
 
-const Navbar = ({ user, logout }) => {
+const Navbar = () => {
+  // Get player name from localStorage if available
+  const playerName = localStorage.getItem("pokerPlayerName");
+
   return (
     <nav className="navbar">
       <div className="navbar-container">
         <Link to="/" className="navbar-logo">
-          Casino App
+          Poker App
         </Link>
         <ul className="nav-menu">
           <li className="nav-item">
@@ -16,30 +19,15 @@ const Navbar = ({ user, logout }) => {
               Home
             </Link>
           </li>
-          {user ? (
-            <>
-              <li className="nav-item">
-                <span className="nav-text">Chips: {user.chips}</span>
-              </li>
-              <li className="nav-item">
-                <button className="nav-button" onClick={logout}>
-                  Logout
-                </button>
-              </li>
-            </>
-          ) : (
-            <>
-              <li className="nav-item">
-                <Link to="/login" className="nav-link">
-                  Login
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link to="/register" className="nav-link">
-                  Register
-                </Link>
-              </li>
-            </>
+          <li className="nav-item">
+            <Link to="/poker" className="nav-link">
+              Play Poker
+            </Link>
+          </li>
+          {playerName && (
+            <li className="nav-item">
+              <span className="nav-text">Playing as: {playerName}</span>
+            </li>
           )}
         </ul>
       </div>

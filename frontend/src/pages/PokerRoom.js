@@ -5,14 +5,16 @@ import axios from "axios";
 import io from "socket.io-client";
 import PokerTable from "../components/PokerTable";
 import PokerControls from "../components/PokerControls";
+import PlayerJoin from "../components/PlayerJoin";
 import "./PokerRoom.css";
 
-const PokerRoom = ({ user }) => {
+const PokerRoom = () => {
   const navigate = useNavigate();
   const [game, setGame] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [socket, setSocket] = useState(null);
+  const [playerName, setPlayerName] = useState("");
 
   // Initialize socket connection
   useEffect(() => {
@@ -41,7 +43,7 @@ const PokerRoom = ({ user }) => {
   useEffect(() => {
     const fetchGame = async () => {
       try {
-        const response = await axios.get("/games/poker");
+        const response = await axios.get("/api/games/poker");
         setGame(response.data);
         setLoading(false);
       } catch (error) {
@@ -54,11 +56,26 @@ const PokerRoom = ({ user }) => {
     fetchGame();
   }, []);
 
+  // Check if player name is stored in localStorage
+  useEffect(() => {
+    const storedPlayerName = localStorage.getItem("pokerPlayerName");
+    if (storedPlayerName) {
+      setPlayerName(storedPlayerName);
+    }
+  }, []);
+
   // Join the game
-  const handleJoinGame = async () => {
+  const handleJoinGame = async (name) => {
     try {
-      const response = await axios.post("/games/poker/join");
+      // Store player name in localStorage
+      localStorage.setItem("pokerPlayerName", name);
+      setPlayerName(name);
+
+      const response = await axios.post("/api/games/poker/join", {
+        playerName: name,
+      });
       setGame(response.data);
+
       // Emit event to update other players
       if (socket) {
         socket.emit("pokerAction", {
@@ -74,7 +91,9 @@ const PokerRoom = ({ user }) => {
   // Start the game
   const handleStartGame = async () => {
     try {
-      const response = await axios.post("/games/poker/start");
+      const response = await axios.post("/api/games/poker/start", {
+        playerName,
+      });
       setGame(response.data);
       // Emit event to update other players
       if (socket) {
@@ -91,7 +110,7 @@ const PokerRoom = ({ user }) => {
   // Reset the game
   const handleResetGame = async () => {
     try {
-      const response = await axios.post("/games/poker/reset");
+      const response = await axios.post("/api/games/poker/reset");
       setGame(response.data);
       // Emit event to update other players
       if (socket) {
@@ -108,7 +127,10 @@ const PokerRoom = ({ user }) => {
   // Place a bet
   const handleBet = async (amount) => {
     try {
-      const response = await axios.post("/games/poker/bet", { amount });
+      const response = await axios.post("/api/games/poker/bet", {
+        amount,
+        playerName,
+      });
       setGame(response.data);
       // Emit event to update other players
       if (socket) {
@@ -125,7 +147,9 @@ const PokerRoom = ({ user }) => {
   // Fold
   const handleFold = async () => {
     try {
-      const response = await axios.post("/games/poker/fold");
+      const response = await axios.post("/api/games/poker/fold", {
+        playerName,
+      });
       setGame(response.data);
       // Emit event to update other players
       if (socket) {
@@ -171,20 +195,28 @@ const PokerRoom = ({ user }) => {
     );
   }
 
+  // If player hasn't joined yet, show join screen
+  if (
+    !playerName ||
+    !game.players.find((player) => player.playerName === playerName)
+  ) {
+    return <PlayerJoin onJoin={handleJoinGame} />;
+  }
+
   // Check if current user is in the game
   const currentPlayer = game.players.find(
-    (player) => player.userId === user.id
+    (player) => player.playerName === playerName
   );
 
   // Determine if current user is the creator (first player)
   const isFirstPlayer =
-    game.players.length > 0 && game.players[0].userId === user.id;
+    game.players.length > 0 && game.players[0].playerName === playerName;
 
   // Check if it's current player's turn
   const isPlayerTurn =
     game.gameState !== "waiting" &&
     game.players[game.currentTurn] &&
-    game.players[game.currentTurn].userId === user.id;
+    game.players[game.currentTurn].playerName === playerName;
 
   return (
     <div className="poker-room">
@@ -211,15 +243,11 @@ const PokerRoom = ({ user }) => {
 
       <div className="poker-content">
         {/* Game table */}
-        <PokerTable game={game} currentPlayerId={user.id} />
+        <PokerTable game={game} currentPlayerName={playerName} />
 
         {/* Game controls */}
         <div className="poker-action-area">
-          {!currentPlayer ? (
-            <button className="btn btn-primary btn-lg" onClick={handleJoinGame}>
-              Join Game
-            </button>
-          ) : game.gameState === "waiting" ? (
+          {game.gameState === "waiting" ? (
             <div className="game-start-controls">
               <button
                 className="btn btn-success btn-lg"
