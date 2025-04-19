@@ -12,15 +12,15 @@ const socketIo = require("socket.io");
 const authRoutes = require("./src/routes/auth");
 const gameRoutes = require("./src/routes/games");
 
-// No need for dotenv since we're hardcoding values
-// dotenv.config();
+// Load environment variables
+dotenv.config();
 
 // Initialize Express app
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:8080",
+    origin: process.env.FRONTEND_URL || "http://localhost:8080",
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -29,7 +29,7 @@ const io = socketIo(server, {
 // Middleware
 app.use(
   cors({
-    origin: "http://localhost:8080", // This must match your frontend URL exactly
+    origin: process.env.FRONTEND_URL || "http://localhost:8080",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -39,15 +39,14 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Set up sessions with hardcoded values
+// Set up sessions
 app.use(
   session({
-    secret: "casino-app-secret-key-123",
+    secret: process.env.SESSION_SECRET || "fallback-session-secret",
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-      mongoUrl:
-        "mongodb+srv://chancewiese0925:0SMJ2llJFvLdbwKV@casino-games.pzxsvqk.mongodb.net/casino-app",
+      mongoUrl: process.env.MONGODB_URI,
       collectionName: "sessions",
     }),
     cookie: {
@@ -56,13 +55,11 @@ app.use(
   })
 );
 
-// Connect to MongoDB with hardcoded URI
+// Connect to MongoDB
 mongoose
-  .connect(
-    "mongodb+srv://chancewiese0925:0SMJ2llJFvLdbwKV@casino-games.pzxsvqk.mongodb.net/casino-app"
-  )
-  .then(() => console.log("Connected to MongoDB Atlas"))
-  .catch((err) => console.error("Could not connect to MongoDB Atlas", err));
+  .connect(process.env.MONGODB_URI)
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => console.error("Could not connect to MongoDB", err));
 
 // Use routes
 app.use("/api/auth", authRoutes);
@@ -92,8 +89,8 @@ io.on("connection", (socket) => {
   });
 });
 
-// Start the server with hardcoded port 3000
-const PORT = 3000;
+// Start the server
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

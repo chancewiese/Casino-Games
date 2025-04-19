@@ -16,8 +16,9 @@ import Register from "./pages/Register";
 import PokerRoom from "./pages/PokerRoom";
 import NotFound from "./pages/NotFound";
 
-// Set axios defaults - backend runs on port 3000
-axios.defaults.baseURL = "http://localhost:3000/api";
+// Set axios defaults
+axios.defaults.baseURL =
+  process.env.REACT_APP_API_URL || "http://localhost:3000/api";
 axios.defaults.withCredentials = true;
 
 function App() {

@@ -75,7 +75,7 @@ router.post("/login", async (req, res) => {
     // Create and sign JWT with hardcoded secret
     const token = jwt.sign(
       { id: user._id, username: user.username },
-      "casino-app-jwt-secret-key",
+      process.env.JWT_SECRET || "fallback-jwt-secret",
       { expiresIn: "1d" }
     );
 

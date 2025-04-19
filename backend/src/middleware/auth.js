@@ -20,7 +20,10 @@ const auth = async (req, res, next) => {
       return res.status(401).json({ message: "Authentication required" });
     }
 
-    const decoded = jwt.verify(token, "casino-app-jwt-secret-key");
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "fallback-jwt-secret"
+    );
     const user = await User.findById(decoded.id).select("-password");
 
     if (!user) {
