@@ -4,11 +4,6 @@ import "./PokerTable.css";
 import PlayingCard from "./PlayingCard";
 
 const PokerTable = ({ game, currentPlayerName }) => {
-  // Find the current player
-  const currentPlayer = game.players.find(
-    (player) => player.playerName === currentPlayerName
-  );
-
   // Calculate positions around the table
   const getPlayerPosition = (position, totalPlayers) => {
     // For a circular table, calculate position percentages

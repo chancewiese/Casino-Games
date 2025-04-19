@@ -16,16 +16,27 @@ const PokerRoom = () => {
   const [socket, setSocket] = useState(null);
   const [playerName, setPlayerName] = useState("");
 
+  // Check if we're running on localhost
+  const isLocalhost =
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1";
+
   // Initialize socket connection
   useEffect(() => {
-    const newSocket = io();
+    // Use the correct socket URL based on where we're running
+    const socketURL = isLocalhost
+      ? "http://localhost:3000" // Development
+      : window.location.origin; // Production
+
+    console.log("Connecting to socket at:", socketURL);
+    const newSocket = io(socketURL);
     setSocket(newSocket);
 
     // Cleanup on unmount
     return () => {
       newSocket.disconnect();
     };
-  }, []);
+  }, [isLocalhost]);
 
   // Join the game room when socket is available
   useEffect(() => {
@@ -43,12 +54,14 @@ const PokerRoom = () => {
   useEffect(() => {
     const fetchGame = async () => {
       try {
-        const response = await axios.get("/api/games/poker");
+        console.log("Fetching game from:", axios.defaults.baseURL);
+        const response = await axios.get("/games/poker");
+        console.log("Game data received:", response.data);
         setGame(response.data);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching game:", error);
-        setError("Failed to load game");
+        setError(`Failed to load game: ${error.message}`);
         setLoading(false);
       }
     };
@@ -71,7 +84,7 @@ const PokerRoom = () => {
       localStorage.setItem("pokerPlayerName", name);
       setPlayerName(name);
 
-      const response = await axios.post("/api/games/poker/join", {
+      const response = await axios.post("/games/poker/join", {
         playerName: name,
       });
       setGame(response.data);
@@ -91,9 +104,7 @@ const PokerRoom = () => {
   // Start the game
   const handleStartGame = async () => {
     try {
-      const response = await axios.post("/api/games/poker/start", {
-        playerName,
-      });
+      const response = await axios.post("/games/poker/start", { playerName });
       setGame(response.data);
       // Emit event to update other players
       if (socket) {
@@ -110,7 +121,7 @@ const PokerRoom = () => {
   // Reset the game
   const handleResetGame = async () => {
     try {
-      const response = await axios.post("/api/games/poker/reset");
+      const response = await axios.post("/games/poker/reset");
       setGame(response.data);
       // Emit event to update other players
       if (socket) {
@@ -127,7 +138,7 @@ const PokerRoom = () => {
   // Place a bet
   const handleBet = async (amount) => {
     try {
-      const response = await axios.post("/api/games/poker/bet", {
+      const response = await axios.post("/games/poker/bet", {
         amount,
         playerName,
       });
@@ -147,9 +158,7 @@ const PokerRoom = () => {
   // Fold
   const handleFold = async () => {
     try {
-      const response = await axios.post("/api/games/poker/fold", {
-        playerName,
-      });
+      const response = await axios.post("/games/poker/fold", { playerName });
       setGame(response.data);
       // Emit event to update other players
       if (socket) {
@@ -207,10 +216,6 @@ const PokerRoom = () => {
   const currentPlayer = game.players.find(
     (player) => player.playerName === playerName
   );
-
-  // Determine if current user is the creator (first player)
-  const isFirstPlayer =
-    game.players.length > 0 && game.players[0].playerName === playerName;
 
   // Check if it's current player's turn
   const isPlayerTurn =

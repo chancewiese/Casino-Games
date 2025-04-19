@@ -9,8 +9,15 @@ import Home from "./pages/Home";
 import PokerRoom from "./pages/PokerRoom";
 import NotFound from "./pages/NotFound";
 
-// Set axios defaults - Use relative path for API
-axios.defaults.baseURL = "/api";
+// Configure axios - Check if we're running on localhost
+const isLocalhost =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1";
+
+// Set the base URL accordingly
+axios.defaults.baseURL = isLocalhost
+  ? "http://localhost:3000/api" // Development - point to backend server
+  : "/api"; // Production - use relative path
 
 function App() {
   return (
